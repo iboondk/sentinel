@@ -19,9 +19,8 @@ This script shows the Sentinel stack in about 90 seconds. Record it once with th
 Say: "One command brings up the fixed app, Elasticsearch, Kibana and Filebeat."
 
 ```bash
-cp .env.example observability/.env
+make up
 cd observability
-docker compose up -d --build
 docker compose ps
 ```
 

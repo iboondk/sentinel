@@ -148,7 +148,7 @@ Verifying controls name a scanner rule, a test in `tests/`, or a log event.
 - Production hardening of Elasticsearch and Kibana (TLS, users, roles, API keys).
 - Multi-node clusters, backups and disaster recovery.
 - Cloud deployment, managed services, and any paid service.
-- The Linux host hardening checklist (covered by the `hardening/` milestone).
+- The Linux host hardening checklist (covered by `hardening/`).
 - Supply-chain threats for base images beyond the Trivy scan.
 - Physical access to the host and the host operating system.
 - Browser-side threats such as malicious extensions.

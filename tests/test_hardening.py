@@ -1,7 +1,7 @@
 """Tests for hardening/harden.sh, run against fixture trees.
 
 Fixtures live in tests/fixtures/hardening/{good,bad}. Git does not keep file
-modes (and the Hazel volume is exFAT, which has no Unix modes), so each test
+modes (and some external volumes are exFAT, which has no Unix modes), so each test
 copies a fixture into tmp_path and sets the modes with os.chmod. The script runs
 with SENTINEL_ROOT=tmp_path, so it only reads and writes inside tmp_path.
 

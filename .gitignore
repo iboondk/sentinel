@@ -9,4 +9,10 @@ logs/
 /trivy.json
 /gitleaks.json
 /zap.json
-PLAN.md
+node_modules/
+vendor/
+target/
+*.tfstate
+*.tfstate.*
+.terraform/
+.tmp/

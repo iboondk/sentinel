@@ -65,7 +65,15 @@ Requirements: Docker with Compose v2. Elasticsearch uses a 512 MB JVM heap by de
 make up        # copies .env.example to observability/.env if missing, then docker compose up -d --build
 ```
 
-That starts Elasticsearch, Kibana, Filebeat and the fixed app. `make down` stops it and `make test` runs the test suite. Without `make`: `cp .env.example observability/.env && cd observability && docker compose up -d --build`.
+That starts Elasticsearch, Kibana, Filebeat and the fixed app. `make down` stops it and `make test` runs the test suite.
+
+Without `make`, one `docker compose` command does the same. The compose file lives in `observability/`, and every variable has a default in the file, so no `.env` copy is needed:
+
+```bash
+docker compose -f observability/docker-compose.yml up -d --build
+```
+
+To use your own tunables, copy `.env.example` to `observability/.env` first (`cp .env.example observability/.env`), then run the command above or `cd observability && docker compose up -d --build`.
 
 Then open:
 
@@ -122,9 +130,8 @@ Exit codes: `0` no FAIL remains, `1` a FAIL remains, `2` usage error. See [`hard
 
 ## Status and known gaps
 
-- **Verified locally:** the pytest suite. The tests check the apps, gate, report renderer, workflow and compose file structure, and the hardening script against fixture trees.
-- **Not run locally:** `docker compose config` and `docker compose up`, Semgrep, Trivy, gitleaks, ZAP, actionlint. These tools are not installed on the development machine. Compose and workflow files are checked for YAML structure only until they run in an environment with the tools.
-- **Verified locally:** `apps/vulnerable` under its own old pinned dependencies (Flask 2.2.2), with tests that prove each planted flaw can be exploited.
+- **Verified locally:** the pytest suite (128 tests). The tests check the apps, gate, report renderer, workflow and compose file structure, and the hardening script against fixture trees. `apps/vulnerable` runs under its own old pinned dependencies (Flask 2.2.2), with tests that prove each planted flaw can be exploited.
+- **Not run locally:** `docker build` of `apps/fixed/Dockerfile`, `docker compose config` and `docker compose up`, Semgrep, Trivy, gitleaks, ZAP, actionlint. These tools are not installed on the development machine. Compose and workflow files are checked for YAML structure only until they run in an environment with the tools.
 - **No numbers yet:** scanner counts appear only in `reports/before-after.md`, produced by a real CI run or a local run with the scanners installed. This README contains no benchmark figures.
 
 ## Documents
