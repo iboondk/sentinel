@@ -1,0 +1,25 @@
+{
+  "_note": "synthetic fixture: fake values only, not real scanner output",
+  "version": "0.0.0-fixture",
+  "errors": [],
+  "results": [
+    {
+      "check_id": "sentinel.fixture-error-rule",
+      "path": "apps/vulnerable/sentinel_vuln/__init__.py",
+      "start": {"line": 42, "col": 5},
+      "extra": {"severity": "ERROR", "message": "synthetic fixture finding (ERROR)"}
+    },
+    {
+      "check_id": "sentinel.fixture-warning-rule",
+      "path": "apps/vulnerable/sentinel_vuln/__init__.py",
+      "start": {"line": 77, "col": 9},
+      "extra": {"severity": "WARNING", "message": "synthetic fixture finding (WARNING)"}
+    },
+    {
+      "check_id": "sentinel.fixture-info-rule",
+      "path": "apps/fixed/sentinel_fixed/__init__.py",
+      "start": {"line": 10, "col": 1},
+      "extra": {"severity": "INFO", "message": "synthetic fixture finding (INFO)"}
+    }
+  ]
+}

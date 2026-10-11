@@ -1,0 +1,4 @@
+# Intentionally old, vulnerable pins so Trivy has real findings. Never deploy.
+flask==2.2.2
+werkzeug==2.2.2
+jinja2==3.1.2

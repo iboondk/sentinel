@@ -1,0 +1,24 @@
+{
+  "_note": "synthetic fixture: fake values only, not real scanner output",
+  "SchemaVersion": 2,
+  "ArtifactName": "synthetic-fixture",
+  "Results": [
+    {
+      "Target": "apps/vulnerable/requirements.txt",
+      "Class": "lang-pkgs",
+      "Type": "pip",
+      "Vulnerabilities": [
+        {"VulnerabilityID": "CVE-0000-0001", "PkgName": "examplelib", "Severity": "HIGH", "Title": "synthetic fixture vulnerability (HIGH)"},
+        {"VulnerabilityID": "CVE-0000-0002", "PkgName": "examplelib", "Severity": "UNKNOWN", "Title": "synthetic fixture vulnerability (UNKNOWN)"}
+      ]
+    },
+    {
+      "Target": "Dockerfile",
+      "Class": "config",
+      "Type": "dockerfile",
+      "Misconfigurations": [
+        {"ID": "FIX-DS-0001", "Severity": "MEDIUM", "Title": "synthetic fixture misconfiguration (MEDIUM)"}
+      ]
+    }
+  ]
+}

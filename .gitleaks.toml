@@ -1,0 +1,12 @@
+# gitleaks configuration for Sentinel. Extends the default rule set.
+title = "Sentinel gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Synthetic fixtures and the intentionally vulnerable demo app"
+paths = [
+  '''tests/fixtures/''',
+  '''apps/vulnerable/''',
+]

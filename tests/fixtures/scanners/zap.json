@@ -1,0 +1,15 @@
+{
+  "_note": "synthetic fixture: fake values only, not real scanner output",
+  "@version": "0.0.0-fixture",
+  "site": [
+    {
+      "@name": "http://127.0.0.1:5002",
+      "alerts": [
+        {"pluginid": "90000", "alert": "synthetic fixture alert (riskcode 3)", "riskcode": "3", "uri": "http://127.0.0.1:5002/search"},
+        {"pluginid": "90001", "alert": "synthetic fixture alert (riskcode 2)", "riskcode": "2", "uri": "http://127.0.0.1:5002/ping"},
+        {"pluginid": "90002", "alert": "synthetic fixture alert (riskcode 1)", "riskcode": "1", "uri": "http://127.0.0.1:5002/health"},
+        {"pluginid": "90003", "alert": "synthetic fixture alert (riskcode 0)", "riskcode": "0", "uri": "http://127.0.0.1:5002/health"}
+      ]
+    }
+  ]
+}

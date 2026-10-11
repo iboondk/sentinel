@@ -1,0 +1,33 @@
+<!--
+  Sentinel custom Wazuh rules (ids 100100-100199).
+  Loaded by the wazuh-manager service under the `wazuh` compose profile.
+  Matches the JSON log lines written by apps/fixed (see FIXES.md).
+  Fields used: event, status, remote_addr.
+-->
+<group name="sentinel,">
+
+  <rule id="100100" level="6">
+    <decoded_as>json</decoded_as>
+    <field name="event">^blocked_input$</field>
+    <description>Sentinel: fixed app rejected input (blocked_input).</description>
+    <group>sentinel_blocked_input,</group>
+  </rule>
+
+  <rule id="100101" level="5">
+    <decoded_as>json</decoded_as>
+    <field name="status">^5\d\d$</field>
+    <description>Sentinel: HTTP 5xx response from the app.</description>
+    <group>sentinel_server_error,</group>
+  </rule>
+
+  <!-- frequency="10" timeframe="60": fires at the 10th matching blocked_input
+       event from the same remote_addr within a 60 second window. Not yet run
+       under wazuh-logtest; confirm the threshold there before relying on it. -->
+  <rule id="100102" level="10" frequency="10" timeframe="60">
+    <if_matched_sid>100100</if_matched_sid>
+    <same_field>remote_addr</same_field>
+    <description>Sentinel: 10+ blocked_input events from the same remote_addr within 60 seconds.</description>
+    <group>sentinel_blocked_input_burst,</group>
+  </rule>
+
+</group>

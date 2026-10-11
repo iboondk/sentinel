@@ -1,0 +1,7 @@
+# Sentinel fixture: compliant sshd configuration (synthetic, not from a real host)
+Port 22
+PermitRootLogin no
+PasswordAuthentication no
+X11Forwarding no
+MaxAuthTries 4
+PubkeyAuthentication yes

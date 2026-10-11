@@ -1,0 +1,41 @@
+# Filebeat config for Sentinel. Mounted read-only into the filebeat container.
+# Reads the apps' JSON log lines and ships them to the local Elasticsearch.
+
+filebeat.inputs:
+  - type: filestream
+    id: sentinel-app-logs
+    enabled: true
+    paths:
+      - /var/log/sentinel/*.log
+    parsers:
+      # One JSON object per line; target "" puts the keys at the top level
+      # (ts, variant, method, path, status, remote_addr, event, ...).
+      - ndjson:
+          target: ""
+          add_error_key: true
+          overwrite_keys: true
+    processors:
+      # The app writes ts as UTC ISO 8601 (e.g. 2026-10-11T08:00:00Z).
+      - timestamp:
+          field: ts
+          layouts:
+            - "2006-01-02T15:04:05Z"
+          test:
+            - "2026-10-11T08:00:00Z"
+          ignore_missing: true
+          ignore_failure: true
+
+output.elasticsearch:
+  hosts: ["elasticsearch:9200"]
+  index: "sentinel-logs-%{+yyyy.MM.dd}"
+
+# Index template matching the output index. ILM is disabled because a custom
+# index name is used; with ILM on, Filebeat would force its own filebeat-* alias.
+setup.ilm.enabled: false
+setup.template.enabled: true
+setup.template.name: "sentinel-logs"
+setup.template.pattern: "sentinel-logs-*"
+setup.template.overwrite: false
+
+logging.level: info
+logging.to_stderr: true

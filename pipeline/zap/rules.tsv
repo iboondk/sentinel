@@ -1,0 +1,9 @@
+# ZAP baseline rule configuration (zap-baseline.py -c rules.tsv)
+# Columns, tab-separated: pluginid, action (IGNORE, WARN, FAIL), name
+10020	WARN	X-Frame-Options Header Not Set
+10021	WARN	X-Content-Type-Options Header Missing
+10038	WARN	Content Security Policy (CSP) Header Not Set
+40003	FAIL	CRLF Injection
+40012	FAIL	Cross Site Scripting (Reflected)
+40018	FAIL	SQL Injection
+90022	FAIL	Application Error Disclosure

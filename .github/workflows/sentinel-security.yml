@@ -1,0 +1,258 @@
+# Sentinel security pipeline.
+# "after" is the gate: it scans apps/fixed and fails the run on any finding at
+# or above "high". "before" scans apps/vulnerable for comparison and never
+# fails the run. "report" builds reports/before-after.md from both summaries.
+name: sentinel-security
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  after:
+    name: after (gate, apps/fixed)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5.3.0
+        with:
+          python-version: "3.12"
+
+      - name: Install Semgrep
+        run: python -m pip install "semgrep==1.99.0"
+
+      - name: Semgrep
+        run: >-
+          semgrep scan
+          --config p/owasp-top-ten
+          --config pipeline/semgrep/sentinel.yml
+          --json -o semgrep.json
+          apps/fixed pipeline
+
+      - name: gitleaks
+        run: >-
+          docker run --rm
+          -v "$GITHUB_WORKSPACE:/repo"
+          ghcr.io/gitleaks/gitleaks:v8.18.4
+          detect --source /repo --config /repo/.gitleaks.toml
+          --report-format json --report-path /repo/gitleaks.json
+          --exit-code 0
+
+      - name: Trivy filesystem scan (apps/fixed)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: apps/fixed
+          format: json
+          output: trivy.json
+          exit-code: "0"
+
+      - name: Install fixed app dependencies
+        working-directory: apps/fixed
+        run: |
+          python -m venv "$RUNNER_TEMP/appenv"
+          "$RUNNER_TEMP/appenv/bin/pip" install -r requirements.txt
+
+      - name: Start fixed app on :5002
+        working-directory: apps/fixed
+        env:
+          SENTINEL_LOG_DIR: ${{ runner.temp }}/logs-fixed
+        run: |
+          nohup "$RUNNER_TEMP/appenv/bin/flask" --app sentinel_fixed:create_app \
+            run --host 127.0.0.1 --port 5002 > "$RUNNER_TEMP/fixed-app.log" 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:5002/health; then exit 0; fi
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/fixed-app.log"
+          exit 1
+
+      - name: OWASP ZAP baseline (fixed app)
+        run: |
+          mkdir -p "$RUNNER_TEMP/zap-wrk"
+          cp pipeline/zap/rules.tsv "$RUNNER_TEMP/zap-wrk/rules.tsv"
+          chmod 777 "$RUNNER_TEMP/zap-wrk"
+          docker run --rm --network host \
+            -v "$RUNNER_TEMP/zap-wrk:/zap/wrk:rw" \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py -t http://127.0.0.1:5002 -c rules.tsv -J zap.json -I \
+            || echo "zap-baseline exited with $? (rule failures are judged by gate.py)"
+          cp "$RUNNER_TEMP/zap-wrk/zap.json" zap.json
+
+      - name: Gate (fail on high)
+        run: >-
+          python pipeline/gate.py --target fixed
+          --semgrep semgrep.json --trivy trivy.json
+          --gitleaks gitleaks.json --zap zap.json
+          --fail-on high --summary-out reports/after/summary.json
+
+      - name: Upload scanner output
+        if: always()
+        uses: actions/upload-artifact@v4.4.3
+        with:
+          name: sentinel-after-scanners
+          path: |
+            semgrep.json
+            gitleaks.json
+            trivy.json
+            zap.json
+          if-no-files-found: warn
+
+      - name: Upload after summary
+        if: always()
+        uses: actions/upload-artifact@v4.4.3
+        with:
+          name: sentinel-after-summary
+          path: reports/after/summary.json
+          if-no-files-found: warn
+
+  before:
+    name: before (apps/vulnerable, informational)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5.3.0
+        with:
+          python-version: "3.12"
+
+      - name: Install Semgrep
+        run: python -m pip install "semgrep==1.99.0"
+
+      - name: Semgrep
+        run: >-
+          semgrep scan
+          --config p/owasp-top-ten
+          --config pipeline/semgrep/sentinel.yml
+          --json -o semgrep.json
+          apps/vulnerable pipeline
+
+      - name: gitleaks
+        run: >-
+          docker run --rm
+          -v "$GITHUB_WORKSPACE:/repo"
+          ghcr.io/gitleaks/gitleaks:v8.18.4
+          detect --source /repo --config /repo/.gitleaks.toml
+          --report-format json --report-path /repo/gitleaks.json
+          --exit-code 0
+
+      - name: Trivy filesystem scan (apps/vulnerable)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: apps/vulnerable
+          format: json
+          output: trivy.json
+          exit-code: "0"
+
+      - name: Install vulnerable app dependencies
+        working-directory: apps/vulnerable
+        run: |
+          python -m venv "$RUNNER_TEMP/appenv"
+          "$RUNNER_TEMP/appenv/bin/pip" install -r requirements.txt
+
+      - name: Start vulnerable app on :5001
+        working-directory: apps/vulnerable
+        env:
+          SENTINEL_LOG_DIR: ${{ runner.temp }}/logs-vulnerable
+        run: |
+          nohup "$RUNNER_TEMP/appenv/bin/flask" --app sentinel_vuln:create_app \
+            run --host 127.0.0.1 --port 5001 > "$RUNNER_TEMP/vulnerable-app.log" 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:5001/health; then exit 0; fi
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/vulnerable-app.log"
+          exit 1
+
+      - name: OWASP ZAP baseline (vulnerable app)
+        run: |
+          mkdir -p "$RUNNER_TEMP/zap-wrk"
+          cp pipeline/zap/rules.tsv "$RUNNER_TEMP/zap-wrk/rules.tsv"
+          chmod 777 "$RUNNER_TEMP/zap-wrk"
+          docker run --rm --network host \
+            -v "$RUNNER_TEMP/zap-wrk:/zap/wrk:rw" \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py -t http://127.0.0.1:5001 -c rules.tsv -J zap.json -I \
+            || echo "zap-baseline exited with $? (rule failures are judged by gate.py)"
+          cp "$RUNNER_TEMP/zap-wrk/zap.json" zap.json
+
+      - name: Gate (report only)
+        run: >-
+          python pipeline/gate.py --target vulnerable
+          --semgrep semgrep.json --trivy trivy.json
+          --gitleaks gitleaks.json --zap zap.json
+          --fail-on none --summary-out reports/before/summary.json
+
+      - name: Upload before summary
+        if: always()
+        uses: actions/upload-artifact@v4.4.3
+        with:
+          name: sentinel-before-summary
+          path: reports/before/summary.json
+          if-no-files-found: warn
+
+  report:
+    name: before/after report
+    needs: [before, after]
+    if: ${{ always() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5.3.0
+        with:
+          python-version: "3.12"
+
+      - name: Download after summary
+        uses: actions/download-artifact@v4.1.8
+        with:
+          name: sentinel-after-summary
+          path: reports/after
+
+      - name: Download before summary
+        continue-on-error: true
+        uses: actions/download-artifact@v4.1.8
+        with:
+          name: sentinel-before-summary
+          path: reports/before
+
+      - name: Render before/after report
+        run: >-
+          python pipeline/render_report.py
+          --before reports/before/summary.json
+          --after reports/after/summary.json
+          --template reports/templates/before-after.md.tmpl
+          --out reports/before-after.md
+
+      - name: Show report in job summary
+        run: cat reports/before-after.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload before/after report
+        uses: actions/upload-artifact@v4.4.3
+        with:
+          name: sentinel-before-after
+          path: reports/before-after.md

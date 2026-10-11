@@ -1,0 +1,22 @@
+[
+  {
+    "Description": "synthetic fixture",
+    "RuleID": "fixture-generic-api-key",
+    "File": "apps/vulnerable/sentinel_vuln/__init__.py",
+    "StartLine": 12,
+    "EndLine": 12,
+    "Secret": "REDACTED-FIXTURE",
+    "Match": "REDACTED-FIXTURE",
+    "Fingerprint": "synthetic-fixture-0001"
+  },
+  {
+    "Description": "synthetic fixture",
+    "RuleID": "fixture-password-assignment",
+    "File": "apps/vulnerable/sentinel_vuln/__init__.py",
+    "StartLine": 30,
+    "EndLine": 30,
+    "Secret": "REDACTED-FIXTURE",
+    "Match": "REDACTED-FIXTURE",
+    "Fingerprint": "synthetic-fixture-0002"
+  }
+]

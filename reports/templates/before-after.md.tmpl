@@ -1,0 +1,32 @@
+<!--
+GENERATED FILE TEMPLATE. The report is generated from scanner output by
+pipeline/render_report.py (gate summary JSON). Do not type numbers into the
+rendered report by hand.
+-->
+# Sentinel before/after scan report
+
+Generated from scanner output at $generated_at.
+
+| | Target |
+|---|---|
+| Before | $before_target |
+| After | $after_target |
+
+## Findings by severity
+
+| Severity | Before | After | Delta |
+|---|---|---|---|
+$severity_rows
+
+## Findings by tool (total)
+
+| Tool | Before | After |
+|---|---|---|
+$tool_rows
+
+## Gate
+
+- Before: $before_gate (informational; the before run uses `--fail-on none`)
+- After: $after_gate
+
+**Result: $result**

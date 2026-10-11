@@ -1,0 +1,4 @@
+# Sentinel fixture: compliant login.defs excerpt (synthetic)
+PASS_MAX_DAYS   90
+PASS_MIN_DAYS   1
+PASS_WARN_AGE   7

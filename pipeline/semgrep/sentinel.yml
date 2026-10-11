@@ -1,0 +1,59 @@
+# Custom Semgrep rules for Sentinel (Python). Used together with
+# p/owasp-top-ten in .github/workflows/sentinel-security.yml.
+rules:
+  - id: sentinel-subprocess-shell-true
+    message: >-
+      subprocess is called with shell=True. Any user-controlled part of the
+      command becomes shell syntax (command injection). Pass an argument list
+      and keep shell=False.
+    severity: ERROR
+    languages: [python]
+    pattern: subprocess.$FUNC(..., shell=True, ...)
+    metadata:
+      cwe: "CWE-78: Improper Neutralization of Special Elements used in an OS Command"
+      category: security
+      owasp: "A03:2021 - Injection"
+
+  - id: sentinel-pickle-loads
+    message: >-
+      pickle.load/loads on data that may come from a client executes
+      arbitrary code during deserialization. Use json or another data-only
+      format and validate it.
+    severity: ERROR
+    languages: [python]
+    pattern-either:
+      - pattern: pickle.loads(...)
+      - pattern: pickle.load(...)
+    metadata:
+      cwe: "CWE-502: Deserialization of Untrusted Data"
+      category: security
+      owasp: "A08:2021 - Software and Data Integrity Failures"
+
+  - id: sentinel-sqlite-execute-string-built
+    message: >-
+      A SQL statement is built with an f-string, concatenation or %-formatting
+      and passed to execute(). This allows SQL injection. Use a parameterised
+      query with ? placeholders and pass the values as the second argument.
+    severity: ERROR
+    languages: [python]
+    pattern-either:
+      - pattern: $CUR.execute(f"...")
+      - pattern: $CUR.execute($A + $B)
+      - pattern: $CUR.execute($A % $B)
+    metadata:
+      cwe: "CWE-89: Improper Neutralization of Special Elements used in an SQL Command"
+      category: security
+      owasp: "A03:2021 - Injection"
+
+  - id: sentinel-flask-debug-true
+    message: >-
+      Flask app.run() is called with debug=True. The Werkzeug debugger allows
+      remote code execution when it is reachable. Set debug=False and read
+      the setting from configuration.
+    severity: ERROR
+    languages: [python]
+    pattern: $APP.run(..., debug=True, ...)
+    metadata:
+      cwe: "CWE-489: Active Debug Code"
+      category: security
+      owasp: "A05:2021 - Security Misconfiguration"
