@@ -1,9 +1,7 @@
-# P10 Sentinel
+# Sentinel
 
-[![sentinel-security](https://github.com/OWNER/REPO/actions/workflows/sentinel-security.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/sentinel-security.yml)
-[![tests](https://github.com/OWNER/REPO/actions/workflows/tests.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/tests.yml)
-
-> Badge placeholder: replace `OWNER/REPO` with the GitHub repository path after the first push.
+[![sentinel-security](https://github.com/iboondk/sentinel/actions/workflows/sentinel-security.yml/badge.svg)](https://github.com/iboondk/sentinel/actions/workflows/sentinel-security.yml)
+[![tests](https://github.com/iboondk/sentinel/actions/workflows/tests.yml/badge.svg)](https://github.com/iboondk/sentinel/actions/workflows/tests.yml)
 
 Sentinel is a security and observability hardening kit. It runs the same scanners against an intentionally vulnerable Flask app and a fixed copy with the same API, gates pull requests on the results, renders a before/after report from real scanner output, and ships the logs of the fixed app into a local Elastic stack.
 
