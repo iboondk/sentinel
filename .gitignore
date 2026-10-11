@@ -9,11 +9,4 @@ logs/
 /trivy.json
 /gitleaks.json
 /zap.json
-node_modules
-vendor
-target
-__pycache__
-*.tfstate
-.terraform
-*.tfstate.backup
-node_modules/
+PLAN.md
