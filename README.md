@@ -82,7 +82,7 @@ Then open:
 
 Every published port is bound to `127.0.0.1`. Security is disabled in Elasticsearch for this local demo, so do not expose these ports on a shared host.
 
-To add the Wazuh manager with the custom rules: `docker compose --profile wazuh up -d`.
+To add the Wazuh manager with the custom rules: `docker compose -f observability/docker-compose.yml --profile wazuh up -d`.
 
 To stop: `make down`, or `docker compose down` inside `observability/` (add `-v` to delete the Elasticsearch and log volumes).
 
@@ -130,9 +130,10 @@ Exit codes: `0` no FAIL remains, `1` a FAIL remains, `2` usage error. See [`hard
 
 ## Status and known gaps
 
-- **Verified locally:** the pytest suite (128 tests). The tests check the apps, gate, report renderer, workflow and compose file structure, and the hardening script against fixture trees. `apps/vulnerable` runs under its own old pinned dependencies (Flask 2.2.2), with tests that prove each planted flaw can be exploited.
+- **Verified locally:** the pytest suite (129 tests). The tests check the apps, gate, report renderer, workflow and compose file structure, and the hardening script against fixture trees. The exploit tests for `apps/vulnerable` run under the dev dependencies (Flask 3.1.3), in the same process as `apps/fixed`. The Flask 2.2.2 pins in `apps/vulnerable/requirements.txt` are used only by the CI scan and the Docker image; the exploit tests have not been run against them.
+- **CI status:** the `sentinel-security` workflow failed on GitHub in runs 38172856747 and 38136899692. Both scan jobs could not resolve `aquasecurity/trivy-action@0.28.0`, which is not a tag, so the `after` and `report` jobs did not run. The workflow now pins `v0.28.0` (commit `915b19bb`). A green run is not confirmed yet and needs a push to GitHub.
 - **Not run locally:** `docker build` of `apps/fixed/Dockerfile`, `docker compose config` and `docker compose up`, Semgrep, Trivy, gitleaks, ZAP, actionlint. These tools are not installed on the development machine. Compose and workflow files are checked for YAML structure only until they run in an environment with the tools.
-- **No numbers yet:** scanner counts appear only in `reports/before-after.md`, produced by a real CI run or a local run with the scanners installed. This README contains no benchmark figures.
+- **No numbers yet:** scanner counts appear only in `reports/before-after.md`, produced by a real CI run or a local run with the scanners installed. No green CI run exists yet, so the repo has no before/after numbers. This README contains no benchmark figures.
 
 ## Documents
 

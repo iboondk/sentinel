@@ -16,14 +16,18 @@ The gate uses only the Python standard library, so it needs no install step (ADR
 
 Verified locally:
 
-- The pytest suite passes: 128 tests. They cover the fixed app's routes and headers, an exploit test for each flaw in the vulnerable app, the gate's parsers and threshold, the report renderer, the hardening script on good and bad fixture trees, and the structure of the workflow and compose files.
+- The pytest suite passes: 129 tests. They cover the fixed app's routes and headers, the gate's parsers and threshold, the report renderer, the hardening script on good and bad fixture trees, and the structure of the workflow and compose files. The exploit tests for the vulnerable app run under the dev dependencies (Flask 3.1.3), not the Flask 2.2.2 pins used in CI and Docker.
 - The workflow and compose YAML parse with PyYAML.
+
+CI:
+
+- The `sentinel-security` workflow failed on GitHub in runs 38172856747 and 38136899692. The scan jobs could not resolve `trivy-action@0.28.0`, so the gate and report jobs never ran. The fix is the tag `v0.28.0` (commit `915b19bb`), plus a test that requires exact tags or SHAs. A green run is not confirmed yet.
 
 Not verified:
 
 - No scanner has run here. Semgrep, Trivy, gitleaks, ZAP, Docker and actionlint are not installed. The scanner files under `tests/fixtures/` are synthetic and labelled as fixtures.
 - `docker compose up` has not run, so the stack has not been seen to start.
-- No before or after scanner numbers exist yet; they need a CI run. Any numbers in `reports/before-after.md` will come from CI scanner output only.
+- No before or after scanner numbers exist yet. No CI run has completed the gate, so `reports/before-after.md` has no real counts. Once a green run exists, the counts will be taken from its `before-after.md` artifact and cited by run ID here.
 
 ## What I would do next
 

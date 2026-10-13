@@ -100,6 +100,22 @@ def test_every_uses_is_pinned_to_a_tag():
                 assert ref, f"{job_name}: empty ref in {step['uses']}"
 
 
+PINNED_REF = re.compile(r"^(v\d+\.\d+\.\d+|[0-9a-f]{40})$")
+
+
+def test_third_party_actions_use_exact_tag_or_sha():
+    # A ref like "0.28.0" (no "v") does not resolve on GitHub and fails the job.
+    for job_name, job in _load_workflow()["jobs"].items():
+        for step in _all_steps(job):
+            uses = step.get("uses")
+            if not uses:
+                continue
+            ref = uses.split("@", 1)[1]
+            assert PINNED_REF.match(ref), (
+                f"{job_name}: {uses} must pin an exact tag like v0.28.0 or a 40-char SHA"
+            )
+
+
 def test_only_github_token_secret_is_used():
     text = WORKFLOW.read_text(encoding="utf-8")
     secrets_used = set(re.findall(r"secrets\.([A-Za-z0-9_]+)", text))
