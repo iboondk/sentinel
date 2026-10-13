@@ -26,7 +26,7 @@ Outputs: `reports/before/`, `reports/after/`, `reports/before-after.md` (made by
                  +------------------- GitHub Actions: sentinel-security.yml -------------------+
  PR / push ----> | semgrep (p/owasp-top-ten + pipeline/semgrep/sentinel.yml) -> semgrep.json    |
                  | gitleaks (config .gitleaks.toml)                         -> gitleaks.json     |
-                 | trivy fs + trivy image (fixed app)                       -> trivy.json        |
+                 | trivy fs (fixed app)                                     -> trivy.json        |
                  | ZAP baseline against fixed app on :5002                 -> zap.json          |
                  |        \__________________ pipeline/gate.py ______________/                  |
                  |          normalise -> summary.json -> exit 1 if any >= high (fails PR)       |
@@ -35,8 +35,9 @@ Outputs: `reports/before/`, `reports/after/`, `reports/before-after.md` (made by
                  |          -> reports/before-after.md (uploaded artifact)                      |
                  +------------------------------------------------------------------------------+
 
- apps/vulnerable (:5001)  --JSON logs-->  logs volume  --> Filebeat --> Elasticsearch --> Kibana
- apps/fixed      (:5002)  --JSON logs-->              \--> (profile wazuh) wazuh-manager + local_rules.xml
+ apps/vulnerable (:5001)  CI scans only; never deployed, not in docker-compose.yml
+ apps/fixed      (:5002)  --JSON logs-->  logs volume  --> Filebeat --> Elasticsearch --> Kibana
+                                                      \--> (profile wazuh) wazuh-manager + local_rules.xml
 
  hardening/harden.sh --check|--apply   (SENTINEL_ROOT prefix lets tests run on a fixture tree)
 ```
